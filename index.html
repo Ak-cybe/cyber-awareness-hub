@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Awareness Hub | Protect Your Digital Life</title>
+    <meta name="description" content="Learn recognized cyber safety practices through interactive simulations.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="background-overlay"></div>
+
+    <header class="app-header">
+        <div class="container header-content">
+            <div class="logo">
+                <span class="shield-icon">🛡️</span>
+                <h1>Cyber Awareness Hub</h1>
+            </div>
+            <p class="tagline">Protect Your Digital Life</p>
+        </div>
+    </header>
+
+    <main class="dashboard-grid container">
+        <!-- Zone 1: Phishing Anatomy (Large Card 2x2) -->
+        <section id="phishing-zone" class="glass-card module-phishing">
+            <header class="card-header">
+                <h2>🔍 Phishing Anatomy</h2>
+                <p>Can you spot the red flags?</p>
+            </header>
+
+            <article class="email-simulator" aria-label="Phishing Email Simulation">
+                <div id="email-container">
+                    <div class="email-header">
+                        <div class="email-meta">
+                            <span class="label">From:</span>
+                            <span class="suspicious clickable-element" data-risk="sender" role="button"
+                                tabindex="0">security@paypa1-support.com</span>
+                        </div>
+                        <div class="email-meta">
+                            <span class="label">Subject:</span>
+                            <span class="suspicious clickable-element" data-risk="subject" role="button"
+                                tabindex="0">URGENT: Your Account
+                                will be suspended in 24 hours!!!</span>
+                        </div>
+                    </div>
+                    <div class="email-body">
+                        <p>Dear Valued Customer,</p>
+                        <p>We noticed unusual activity on your account. To prevent permanent suspension, please verify
+                            your
+                            identity immediately.</p>
+                        <p>Failure to act within 24 hours will result in <span class="suspicious clickable-element"
+                                data-risk="urgency" role="button" tabindex="0">total loss of funds</span>.</p>
+                    </div>
+                </div>
+                <div class="controls" style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button id="btn-report" class="btn btn-primary"
+                        style="flex: 1; background: var(--accent-green); box-shadow: var(--glow-green);">✅ Report
+                        Suspicious</button>
+                    <button id="btn-next-scenario" class="btn btn-secondary-glass" style="flex: 1;">Next Scenario
+                        ➡</button>
+                </div>
+
+                <div id="phishing-feedback" class="feedback-panel" hidden>
+                    <h3 id="feedback-title">Analysis Result</h3>
+                    <p id="feedback-text"></p>
+                    <button class="btn btn-secondary-glass"
+                        onclick="document.getElementById('phishing-feedback').hidden = true">Close</button>
+                </div>
+        </section>
+
+        <!-- Stats Dashboard (New Card) -->
+        <section id="stats-zone" class="glass-card module-stats">
+            <header class="card-header">
+                <h2>🏆 Your Security Score</h2>
+            </header>
+            <div class="stats-grid"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center;">
+                <div class="stat-item">
+                    <span id="stat-reported"
+                        style="font-size: 2rem; color: var(--accent-green); font-weight: bold; display: block;">0</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Reported</span>
+                </div>
+                <div class="stat-item">
+                    <span id="stat-missed"
+                        style="font-size: 2rem; color: var(--accent-red); font-weight: bold; display: block;">0</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Clicked</span>
+                </div>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.9rem; text-align: center; color: #aaa;">Keep your "Reported" score
+                high!</p>
+        </section>
+
+        <!-- Zone 4: External Training (New Card) -->
+        <section id="training-zone" class="glass-card module-training">
+            <header class="card-header">
+                <h2>🎓 Official Training</h2>
+            </header>
+            <div style="text-align: center; padding: 10px;">
+                <h3 style="color: var(--accent-blue); margin-bottom: 5px;">Cybersecurity Awareness</h3>
+                <p style="font-size: 0.85rem; color: #ccc; margin-bottom: 15px;">
+                    Learn about AIS threats, intrusion methods, and countermeasures.
+                    Experience a large-scale cyber event simulation.
+                </p>
+
+                <button
+                    onclick="window.open('https://securityawareness.dcsa.mil/cybersecurity/content/Block10/Introduction/page_0010.html', 'CyberCourse', 'width=1280,height=720,scrollbars=yes,resizable=yes');"
+                    class="btn btn-primary"
+                    style="display: inline-block; width: 100%; text-align: center; background: linear-gradient(135deg, #FFD700, #DAA520); color: #000; font-weight: bold; border: none; box-shadow: 0 0 10px rgba(218, 165, 32, 0.5); cursor: pointer;">
+                    🚀 Launch Course
+                </button>
+                <p style="font-size: 0.7rem; color: #888; margin-top: 10px;">
+                    *Certificate provided upon completion (CDSE)
+                </p>
+            </div>
+        </section>
+
+        <!-- Zone 2: Password Lab (Tall Card) -->
+        <section id="password-zone" class="glass-card module-password">
+            <header class="card-header">
+                <h2>🔐 Password Lab</h2>
+            </header>
+
+            <div class="password-tester">
+                <div class="input-group">
+                    <label for="password-input">Test Strength</label>
+                    <input type="text" id="password-input" placeholder="Type password..." autocomplete="off">
+                </div>
+
+                <div class="strength-meter-container">
+                    <div id="strength-bar" class="strength-bar" style="width: 0%"></div>
+                </div>
+                <p id="strength-text" class="strength-text">Enter Password</p>
+
+                <ul class="password-tips">
+                    <li id="rule-length">12+ Characters</li>
+                    <li id="rule-variety">Symbols & Numbers</li>
+                    <li id="rule-case">Upper & Lower Case</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Zone 3: Hygiene Checklist (Tall Card) -->
+        <section id="hygiene-zone" class="glass-card module-checklist">
+            <header class="card-header">
+                <h2>✅ Daily Hygiene</h2>
+            </header>
+
+            <div class="checklist-stack">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-mfa">
+                    <label for="check-mfa">
+                        <strong>Enable 2FA/MFA</strong>
+                        <span>Protect email & banking</span>
+                    </label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-update">
+                    <label for="check-update">
+                        <strong>Update Software</strong>
+                        <span>Patch OS & apps</span>
+                    </label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-backup">
+                    <label for="check-backup">
+                        <strong>Backup Data</strong>
+                        <span>Cloud or external drive</span>
+                    </label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-lock">
+                    <label for="check-lock">
+                        <strong>Screen Lock</strong>
+                        <span>Auto-lock < 1 min</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 CyberGuard Architect. Educational Purpose Only.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
