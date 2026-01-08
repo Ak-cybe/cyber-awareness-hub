@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initPhishingSim();
     initPasswordSim();
     initChecklist();
+    initPhishingAnalyzer();
+    initAPIConfig();
 });
 
 // --- Phishing Simulation (Dynamic) ---
@@ -382,4 +384,437 @@ function initChecklist() {
             localStorage.setItem(box.id, box.checked);
         });
     });
+}
+
+// ========================================
+// PHISHING ANALYZER MODULE
+// ========================================
+
+const URL_PATTERNS = {
+    suspiciousTLDs: {
+        pattern: /\.(xyz|tk|ml|ga|cf|top|pw|cc|club|click|link|site|online|icu|buzz|monster)$/i,
+        severity: 'high',
+        title: 'Suspicious TLD Detected',
+        desc: 'This domain uses a TLD commonly associated with phishing campaigns.'
+    },
+    ipAddress: {
+        pattern: /^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/i,
+        severity: 'critical',
+        title: 'IP Address URL',
+        desc: 'Legitimate services use domain names, not raw IP addresses.'
+    },
+    typosquatting: {
+        pattern: /(paypa1|g00gle|amaz0n|micros0ft|app1e|faceb00k|netfl1x|1nstagram|tw1tter|l1nkedin)/i,
+        severity: 'critical',
+        title: 'Typosquatting Detected',
+        desc: 'The domain mimics a well-known brand using character substitution.'
+    },
+    excessiveSubdomains: {
+        pattern: /^https?:\/\/([^\/]+\.){4,}/i,
+        severity: 'medium',
+        title: 'Excessive Subdomains',
+        desc: 'Multiple subdomains can be used to hide the real domain.'
+    },
+    urlShortener: {
+        pattern: /(bit\.ly|tinyurl|t\.co|goo\.gl|ow\.ly|is\.gd|buff\.ly|short\.to)/i,
+        severity: 'medium',
+        title: 'URL Shortener',
+        desc: 'Shortened URLs hide the true destination. Verify before clicking.'
+    },
+    noHTTPS: {
+        pattern: /^http:\/\//i,
+        severity: 'medium',
+        title: 'No HTTPS',
+        desc: 'Connection is not encrypted. Never enter credentials on HTTP sites.'
+    },
+    suspiciousKeywords: {
+        pattern: /(verify|confirm|suspend|locked|urgent|update|secure|login|signin|account|password|credential)/i,
+        severity: 'low',
+        title: 'Suspicious Keywords in URL',
+        desc: 'URL contains words commonly used in phishing attacks.'
+    },
+    dataURI: {
+        pattern: /^data:/i,
+        severity: 'critical',
+        title: 'Data URI Attack',
+        desc: 'Data URIs can embed malicious content. Never trust these links.'
+    },
+    atSymbol: {
+        pattern: /^https?:\/\/[^\/]*@/i,
+        severity: 'high',
+        title: '@ Symbol in URL',
+        desc: 'The @ symbol can hide the real domain. Everything before @ is ignored.'
+    },
+    hexEncoding: {
+        pattern: /%[0-9a-f]{2}/i,
+        severity: 'medium',
+        title: 'URL Encoding Detected',
+        desc: 'Encoded characters may be hiding malicious content.'
+    }
+};
+
+const EMAIL_PATTERNS = {
+    urgency: {
+        pattern: /(urgent|immediately|right now|within 24 hours|act now|don't delay|time sensitive|expires today|last chance)/gi,
+        severity: 'high',
+        title: 'Urgency Tactics',
+        desc: 'Creates artificial pressure to bypass rational thinking.'
+    },
+    threats: {
+        pattern: /(suspend|terminate|locked|compromised|unauthorized|illegal|violation|permanently deleted|legal action)/gi,
+        severity: 'high',
+        title: 'Threat Language',
+        desc: 'Uses fear to manipulate you into immediate action.'
+    },
+    credentialRequest: {
+        pattern: /(verify your (password|identity|account)|confirm your (credentials|login)|enter your (password|ssn|credit card))/gi,
+        severity: 'critical',
+        title: 'Credential Harvesting',
+        desc: 'Legitimate companies never ask for passwords via email.'
+    },
+    financialPressure: {
+        pattern: /(payment required|invoice overdue|billing issue|update payment|wire transfer|bank account.*changed)/gi,
+        severity: 'high',
+        title: 'Financial Pressure',
+        desc: 'BEC attacks often involve fake invoices or payment changes.'
+    },
+    genericGreeting: {
+        pattern: /^(dear (customer|user|valued member|account holder|sir\/madam))/mi,
+        severity: 'low',
+        title: 'Generic Greeting',
+        desc: 'Legitimate services usually address you by name.'
+    },
+    spoofedSender: {
+        pattern: /(support@.*-update|security@.*-verify|admin@.*-portal|hr@.*-corp|it@.*-desk)/gi,
+        severity: 'high',
+        title: 'Suspicious Sender Pattern',
+        desc: 'Email domain looks like it\'s trying to impersonate a legitimate service.'
+    },
+    clickHere: {
+        pattern: /(click here|click below|click this link|click the link)/gi,
+        severity: 'low',
+        title: 'Suspicious Call to Action',
+        desc: 'Phishing emails often use vague "click here" links.'
+    },
+    attachmentMention: {
+        pattern: /(see attached|open the attachment|download.*attachment|attached.*invoice|attached.*document)/gi,
+        severity: 'medium',
+        title: 'Attachment Reference',
+        desc: 'Be cautious of unexpected attachments - they may contain malware.'
+    }
+};
+
+const RISK_WEIGHTS = {
+    critical: 40,
+    high: 25,
+    medium: 15,
+    low: 5
+};
+
+function initPhishingAnalyzer() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const urlPanel = document.getElementById('url-panel');
+    const emailPanel = document.getElementById('email-panel');
+    const btnAnalyzeUrl = document.getElementById('btn-analyze-url');
+    const btnAnalyzeEmail = document.getElementById('btn-analyze-email');
+
+    if (!tabBtns.length) return;
+
+    // Tab switching
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (btn.dataset.tab === 'url') {
+                urlPanel.style.display = 'block';
+                emailPanel.style.display = 'none';
+            } else {
+                urlPanel.style.display = 'none';
+                emailPanel.style.display = 'block';
+            }
+
+            // Hide results when switching tabs
+            document.getElementById('analysis-results').hidden = true;
+        });
+    });
+
+    // URL Analysis
+    btnAnalyzeUrl.addEventListener('click', () => {
+        const url = document.getElementById('url-input').value.trim();
+        if (!url) {
+            alert('Please enter a URL to analyze');
+            return;
+        }
+        const results = analyzeURL(url);
+        displayResults(results);
+    });
+
+    // Email Analysis
+    btnAnalyzeEmail.addEventListener('click', () => {
+        const email = document.getElementById('email-input').value.trim();
+        if (!email) {
+            alert('Please enter email content to analyze');
+            return;
+        }
+        const results = analyzeEmail(email);
+        displayResults(results);
+    });
+}
+
+function analyzeURL(url) {
+    const findings = [];
+    let totalScore = 0;
+
+    for (const [key, check] of Object.entries(URL_PATTERNS)) {
+        if (check.pattern.test(url)) {
+            findings.push({
+                severity: check.severity,
+                title: check.title,
+                desc: check.desc
+            });
+            totalScore += RISK_WEIGHTS[check.severity];
+        }
+    }
+
+    // Cap score at 100
+    totalScore = Math.min(totalScore, 100);
+
+    return { score: totalScore, findings };
+}
+
+function analyzeEmail(emailContent) {
+    const findings = [];
+    let totalScore = 0;
+
+    for (const [key, check] of Object.entries(EMAIL_PATTERNS)) {
+        const matches = emailContent.match(check.pattern);
+        if (matches && matches.length > 0) {
+            findings.push({
+                severity: check.severity,
+                title: check.title,
+                desc: check.desc,
+                matches: matches.slice(0, 3) // Show first 3 matches
+            });
+            totalScore += RISK_WEIGHTS[check.severity];
+        }
+    }
+
+    // Cap score at 100
+    totalScore = Math.min(totalScore, 100);
+
+    return { score: totalScore, findings };
+}
+
+function displayResults(results) {
+    const container = document.getElementById('analysis-results');
+    const scoreCircle = document.getElementById('score-circle');
+    const riskScore = document.getElementById('risk-score');
+    const riskLabel = document.getElementById('risk-label');
+    const findingsList = document.getElementById('findings-list');
+
+    container.hidden = false;
+
+    // Animate score
+    let currentScore = 0;
+    const targetScore = results.score;
+    const duration = 500;
+    const increment = targetScore / (duration / 16);
+
+    const animateScore = () => {
+        currentScore += increment;
+        if (currentScore >= targetScore) {
+            currentScore = targetScore;
+            riskScore.textContent = Math.round(currentScore);
+        } else {
+            riskScore.textContent = Math.round(currentScore);
+            requestAnimationFrame(animateScore);
+        }
+    };
+    animateScore();
+
+    // Set risk level styling
+    scoreCircle.className = 'score-circle';
+    if (results.score <= 20) {
+        scoreCircle.classList.add('low');
+        riskLabel.textContent = '✅ Low Risk - Likely Safe';
+        riskLabel.style.color = 'var(--accent-green)';
+    } else if (results.score <= 40) {
+        scoreCircle.classList.add('medium');
+        riskLabel.textContent = '⚠️ Medium Risk - Exercise Caution';
+        riskLabel.style.color = '#ffc107';
+    } else if (results.score <= 70) {
+        scoreCircle.classList.add('high');
+        riskLabel.textContent = '🔴 High Risk - Likely Phishing';
+        riskLabel.style.color = '#ff6b35';
+    } else {
+        scoreCircle.classList.add('critical');
+        riskLabel.textContent = '🚨 CRITICAL - Do Not Interact!';
+        riskLabel.style.color = 'var(--accent-red)';
+    }
+
+    // Display findings
+    findingsList.innerHTML = '';
+    if (results.findings.length === 0) {
+        findingsList.innerHTML = '<p style="color: var(--accent-green);">✓ No suspicious indicators detected</p>';
+    } else {
+        results.findings.forEach(finding => {
+            const icon = finding.severity === 'critical' ? '🚨' :
+                finding.severity === 'high' ? '⚠️' :
+                    finding.severity === 'medium' ? '⚡' : 'ℹ️';
+
+            findingsList.innerHTML += `
+                <div class="finding-item ${finding.severity}">
+                    <span class="finding-icon">${icon}</span>
+                    <div class="finding-content">
+                        <div class="finding-title">${finding.title}</div>
+                        <div class="finding-desc">${finding.desc}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Scroll to results
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ========================================
+// API CONFIGURATION MODULE
+// ========================================
+
+const API_CONFIG = {
+    vt: { name: 'VirusTotal', key: null, enabled: false },
+    gsb: { name: 'Google Safe Browsing', key: null, enabled: false },
+    pt: { name: 'PhishTank', key: null, enabled: false }
+};
+
+function initAPIConfig() {
+    loadAPIKeys();
+
+    // Save button listeners
+    document.querySelectorAll('.btn-save-key').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const apiId = btn.dataset.api;
+            const input = document.getElementById(`${apiId}-api-key`);
+            const key = input.value.trim();
+
+            if (key) {
+                saveAPIKey(apiId, key);
+                input.value = '';
+                input.placeholder = '••••••••••••••••';
+            }
+        });
+    });
+
+    // Toggle listeners
+    ['vt', 'gsb', 'pt'].forEach(apiId => {
+        const toggle = document.getElementById(`${apiId}-enabled`);
+        if (toggle) {
+            toggle.addEventListener('change', () => {
+                API_CONFIG[apiId].enabled = toggle.checked;
+                localStorage.setItem(`api_${apiId}_enabled`, toggle.checked);
+            });
+        }
+    });
+}
+
+function loadAPIKeys() {
+    ['vt', 'gsb', 'pt'].forEach(apiId => {
+        const savedKey = localStorage.getItem(`api_${apiId}_key`);
+        const savedEnabled = localStorage.getItem(`api_${apiId}_enabled`) === 'true';
+        const statusEl = document.getElementById(`${apiId}-status`);
+        const toggleEl = document.getElementById(`${apiId}-enabled`);
+        const inputEl = document.getElementById(`${apiId}-api-key`);
+
+        if (savedKey) {
+            API_CONFIG[apiId].key = savedKey;
+            API_CONFIG[apiId].enabled = savedEnabled;
+
+            if (statusEl) {
+                statusEl.textContent = 'Active ✓';
+                statusEl.classList.add('active');
+            }
+            if (toggleEl) {
+                toggleEl.disabled = false;
+                toggleEl.checked = savedEnabled;
+            }
+            if (inputEl) {
+                inputEl.placeholder = '••••••••••••••••';
+            }
+        }
+    });
+}
+
+function saveAPIKey(apiId, key) {
+    localStorage.setItem(`api_${apiId}_key`, key);
+    localStorage.setItem(`api_${apiId}_enabled`, 'true');
+
+    API_CONFIG[apiId].key = key;
+    API_CONFIG[apiId].enabled = true;
+
+    const statusEl = document.getElementById(`${apiId}-status`);
+    const toggleEl = document.getElementById(`${apiId}-enabled`);
+
+    if (statusEl) {
+        statusEl.textContent = 'Active ✓';
+        statusEl.classList.add('active');
+    }
+    if (toggleEl) {
+        toggleEl.disabled = false;
+        toggleEl.checked = true;
+    }
+
+    // Show confirmation
+    alert(`${API_CONFIG[apiId].name} API key saved successfully!`);
+}
+
+// API Integration Functions (for future use when APIs are configured)
+async function checkVirusTotal(url) {
+    if (!API_CONFIG.vt.enabled || !API_CONFIG.vt.key) return null;
+
+    try {
+        const urlId = btoa(url).replace(/=/g, '');
+        const response = await fetch(`https://www.virustotal.com/api/v3/urls/${urlId}`, {
+            headers: { 'x-apikey': API_CONFIG.vt.key }
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('VirusTotal API error:', error);
+        return null;
+    }
+}
+
+async function checkGoogleSafeBrowsing(url) {
+    if (!API_CONFIG.gsb.enabled || !API_CONFIG.gsb.key) return null;
+
+    try {
+        const response = await fetch(
+            `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${API_CONFIG.gsb.key}`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    client: { clientId: 'cyberawareness', clientVersion: '1.0' },
+                    threatInfo: {
+                        threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE'],
+                        platformTypes: ['ANY_PLATFORM'],
+                        threatEntryTypes: ['URL'],
+                        threatEntries: [{ url: url }]
+                    }
+                })
+            }
+        );
+        return await response.json();
+    } catch (error) {
+        console.error('Google Safe Browsing API error:', error);
+        return null;
+    }
+}
+
+async function checkPhishTank(url) {
+    if (!API_CONFIG.pt.enabled || !API_CONFIG.pt.key) return null;
+
+    // Note: PhishTank requires CORS proxy for browser-based calls
+    console.log('PhishTank check would require server-side proxy');
+    return null;
 }
