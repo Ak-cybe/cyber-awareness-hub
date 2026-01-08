@@ -178,10 +178,135 @@
                 </div>
             </div>
         </section>
+
+        <!-- Zone 5: Phishing URL/Email Analyzer -->
+        <section id="analyzer-zone" class="glass-card module-analyzer">
+            <header class="card-header">
+                <h2>🔬 Phishing Analyzer</h2>
+                <p>Paste a URL or email content to analyze</p>
+            </header>
+
+            <!-- Tab Switcher -->
+            <div class="analyzer-tabs">
+                <button class="tab-btn active" data-tab="url">🔗 URL Check</button>
+                <button class="tab-btn" data-tab="email">📧 Email Check</button>
+            </div>
+
+            <!-- URL Analysis Panel -->
+            <div id="url-panel" class="analyzer-panel active">
+                <div class="input-group">
+                    <input type="text" id="url-input" placeholder="https://suspicious-link.com/verify..."
+                        autocomplete="off">
+                </div>
+                <button id="btn-analyze-url" class="btn btn-primary"
+                    style="width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--accent-blue), #0066cc);">
+                    🔍 Analyze URL
+                </button>
+            </div>
+
+            <!-- Email Analysis Panel -->
+            <div id="email-panel" class="analyzer-panel" style="display: none;">
+                <div class="input-group">
+                    <textarea id="email-input" rows="5" placeholder="Paste email content here..."
+                        style="resize: vertical;"></textarea>
+                </div>
+                <button id="btn-analyze-email" class="btn btn-primary"
+                    style="width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--accent-blue), #0066cc);">
+                    📧 Analyze Email
+                </button>
+            </div>
+
+            <!-- Results Display -->
+            <div id="analysis-results" class="results-container" hidden>
+                <div class="risk-score-display">
+                    <div class="score-circle" id="score-circle">
+                        <span id="risk-score">0</span>
+                    </div>
+                    <span id="risk-label" class="risk-label">Enter data to analyze</span>
+                </div>
+                <div id="findings-list" class="findings-list"></div>
+            </div>
+        </section>
+
+        <!-- Zone 6: API Configuration Dashboard -->
+        <section id="api-config-zone" class="glass-card module-api-config">
+            <header class="card-header">
+                <h2>⚙️ API Configuration</h2>
+                <p>Connect external threat intelligence</p>
+            </header>
+
+            <div class="api-config-list">
+                <!-- VirusTotal -->
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🦠</span>
+                        <div class="api-info">
+                            <strong>VirusTotal</strong>
+                            <span class="api-status" id="vt-status">Not Configured</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="vt-enabled" disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="vt-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="vt">💾</button>
+                    </div>
+                    <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" class="api-link">Get Free Key
+                        →</a>
+                </div>
+
+                <!-- Google Safe Browsing -->
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🔒</span>
+                        <div class="api-info">
+                            <strong>Google Safe Browsing</strong>
+                            <span class="api-status" id="gsb-status">Not Configured</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="gsb-enabled" disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="gsb-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="gsb">💾</button>
+                    </div>
+                    <a href="https://console.cloud.google.com/apis/library/safebrowsing.googleapis.com" target="_blank"
+                        class="api-link">Get Key →</a>
+                </div>
+
+                <!-- PhishTank -->
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🎣</span>
+                        <div class="api-info">
+                            <strong>PhishTank</strong>
+                            <span class="api-status" id="pt-status">Not Configured</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pt-enabled" disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="pt-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="pt">💾</button>
+                    </div>
+                    <a href="https://phishtank.org/api_info.php" target="_blank" class="api-link">Get Free Key →</a>
+                </div>
+            </div>
+
+            <div class="api-note">
+                <p>🔐 Keys stored locally in your browser</p>
+            </div>
+        </section>
     </main>
 
     <footer>
-        <p>&copy; 2024 CyberGuard Architect. Educational Purpose Only.</p>
+        <p>&copy; 2025 CyberGuard Architect. Educational Purpose Only.</p>
     </footer>
 
     <script src="script.js"></script>
