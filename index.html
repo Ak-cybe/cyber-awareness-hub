@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Awareness Hub | Protect Your Digital Life</title>
+    <meta name="description" content="Learn recognized cyber safety practices through interactive simulations.">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                   font-src https://fonts.gstatic.com;
+                   script-src 'self';
+                   connect-src 'self' https://www.virustotal.com https://safebrowsing.googleapis.com;
+                   frame-src 'self';
+                   img-src 'self' data:;
+                   object-src 'none';
+                   base-uri 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="theme-color" content="#121212">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- #1 Particle Background -->
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+    <div class="background-overlay"></div>
+
+    <!-- #15 Confetti Canvas -->
+    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- #3 Toast Container -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- #11 Sticky Navigation Bar -->
+    <nav class="sticky-nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <span class="shield-icon">🛡️</span>
+                <h1>Cyber Awareness Hub</h1>
+            </div>
+            <div class="nav-links" role="tablist">
+                <button class="nav-link active" data-target="phishing-zone">🔍 Phishing</button>
+                <button class="nav-link" data-target="password-zone">🔐 Password</button>
+                <button class="nav-link" data-target="hygiene-zone">✅ Hygiene</button>
+                <button class="nav-link" data-target="quiz-zone">🕵️ Quiz</button>
+                <button class="nav-link" data-target="analyzer-zone">🔬 Analyzer</button>
+                <button class="nav-link" data-target="threat-scanner-zone">🔎 Threat Scanner</button>
+                <button class="nav-link" data-target="training-module-zone">📚 Training</button>
+                <button class="nav-link" data-target="dashboard-zone">📊 Dashboard</button>
+                <button class="nav-link" data-target="api-config-zone">⚙️ Settings</button>
+            </div>
+            <div class="nav-right">
+                <!-- #5 Theme Toggle -->
+                <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- #9 Gamification Bar -->
+    <div class="container" style="margin-top: 12px;">
+        <div class="gamification-bar" id="gamification-bar" role="status" aria-label="Your progress">
+            <div class="level-display" id="level-display">🎖️ Rookie</div>
+            <div class="xp-display"><span id="xp-count">0</span> XP</div>
+            <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+        </div>
+    </div>
+
+    <main class="dashboard-grid container">
+        <!-- Zone 1: Phishing Anatomy -->
+        <section id="phishing-zone" class="glass-card module-phishing" aria-label="Phishing simulation">
+            <header class="card-header">
+                <h2>🔍 Phishing Anatomy</h2>
+                <p>Can you spot the red flags?</p>
+            </header>
+            <article class="email-simulator" aria-label="Phishing Email Simulation">
+                <div id="email-container">
+                    <div class="email-header">
+                        <div class="email-meta">
+                            <span class="label">From:</span>
+                            <span class="suspicious clickable-element" data-risk="sender" role="button" tabindex="0">security@paypa1-support.com</span>
+                        </div>
+                        <div class="email-meta">
+                            <span class="label">Subject:</span>
+                            <span class="suspicious clickable-element" data-risk="subject" role="button" tabindex="0">URGENT: Your Account will be suspended in 24 hours!!!</span>
+                        </div>
+                    </div>
+                    <div class="email-body">
+                        <p>Dear Valued Customer,</p>
+                        <p>We noticed unusual activity on your account. To prevent permanent suspension, please verify your identity immediately.</p>
+                        <p>Failure to act within 24 hours will result in <span class="suspicious clickable-element" data-risk="urgency" role="button" tabindex="0">total loss of funds</span>.</p>
+                    </div>
+                </div>
+                <!-- #12 Scenario Progress Dots -->
+                <div class="scenario-dots" id="scenario-dots" role="tablist" aria-label="Scenario navigation"></div>
+                <div class="controls email-actions">
+                    <button id="btn-report" class="btn btn-primary report-btn">✅ Report Suspicious</button>
+                    <button id="btn-next-scenario" class="btn btn-secondary-glass" style="flex: 1;">Next Scenario ➡</button>
+                </div>
+                <div id="phishing-feedback" class="feedback-panel" hidden aria-live="assertive">
+                    <h3 id="feedback-title">Analysis Result</h3>
+                    <p id="feedback-text"></p>
+                    <button id="btn-close-feedback" class="btn btn-secondary-glass">Close</button>
+                </div>
+            </article>
+        </section>
+
+        <!-- Stats Dashboard with #4 Progress Ring -->
+        <section id="stats-zone" class="glass-card module-stats" aria-label="Security score">
+            <header class="card-header">
+                <h2>🏆 Your Security Score</h2>
+            </header>
+            <div class="progress-ring-wrap">
+                <svg class="progress-ring-svg" width="120" height="120">
+                    <circle class="progress-ring-bg" cx="60" cy="60" r="52"/>
+                    <circle class="progress-ring-fg" id="progress-ring" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+                </svg>
+                <div class="progress-ring-text" id="progress-ring-pct">0%</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span id="stat-reported" class="stat-value-green">0</span>
+                    <span class="stat-label">Reported</span>
+                </div>
+                <div class="stat-item">
+                    <span id="stat-missed" class="stat-value-red">0</span>
+                    <span class="stat-label">Clicked</span>
+                </div>
+            </div>
+            <!-- #9 Badges -->
+            <div class="badges-container" id="badges-container"></div>
+        </section>
+
+        <!-- Training -->
+        <section id="training-zone" class="glass-card module-training" aria-label="Training resources">
+            <header class="card-header">
+                <h2>🎓 Official Training</h2>
+            </header>
+            <div class="training-content">
+                <h3 class="training-title">Cybersecurity Awareness</h3>
+                <p class="training-desc">Learn about AIS threats, intrusion methods, and countermeasures. Experience a large-scale cyber event simulation.</p>
+                <button id="btn-launch-course" class="btn btn-primary launch-btn">🚀 Launch Course</button>
+                <p class="cert-note">*Certificate provided upon completion (CDSE)</p>
+            </div>
+        </section>
+
+        <!-- Password Lab with #14 Emoji -->
+        <section id="password-zone" class="glass-card module-password" aria-label="Password strength tester">
+            <header class="card-header">
+                <h2>🔐 Password Lab</h2>
+            </header>
+            <div class="password-tester">
+                <div class="pw-emoji" id="pw-emoji">🔒</div>
+                <div class="input-group">
+                    <label for="password-input">Test Strength</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password-input" placeholder="Type password..." autocomplete="off">
+                        <button type="button" id="toggle-pw-visibility" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px;" title="Toggle password visibility" aria-label="Toggle password visibility">👁️</button>
+                    </div>
+                </div>
+                <div class="strength-meter-container">
+                    <div id="strength-bar" class="strength-bar" style="width: 0%"></div>
+                </div>
+                <p id="strength-text" class="strength-text">Enter Password</p>
+                <ul class="password-tips">
+                    <li id="rule-length">12+ Characters</li>
+                    <li id="rule-variety">Symbols & Numbers</li>
+                    <li id="rule-case">Upper & Lower Case</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Hygiene Checklist -->
+        <section id="hygiene-zone" class="glass-card module-checklist" aria-label="Daily hygiene checklist">
+            <header class="card-header">
+                <h2>✅ Daily Hygiene</h2>
+            </header>
+            <div class="checklist-stack">
+                <div class="checklist-item"><input type="checkbox" id="check-mfa"><label for="check-mfa"><strong>Enable 2FA/MFA</strong><span>Protect email & banking</span></label></div>
+                <div class="checklist-item"><input type="checkbox" id="check-update"><label for="check-update"><strong>Update Software</strong><span>Patch OS & apps</span></label></div>
+                <div class="checklist-item"><input type="checkbox" id="check-backup"><label for="check-backup"><strong>Backup Data</strong><span>Cloud or external drive</span></label></div>
+                <div class="checklist-item"><input type="checkbox" id="check-lock"><label for="check-lock"><strong>Screen Lock</strong><span>Auto-lock < 1 min</span></label></div>
+            </div>
+        </section>
+
+        <!-- #6 Social Engineering Quiz -->
+        <section id="quiz-zone" class="glass-card module-quiz" aria-label="Social engineering quiz">
+            <header class="card-header">
+                <h2>🕵️ Social Engineering Quiz</h2>
+                <p>Test your human firewall</p>
+            </header>
+            <div id="quiz-container">
+                <div class="quiz-question" id="quiz-question"></div>
+                <div class="quiz-options" id="quiz-options"></div>
+                <div id="quiz-explanation" class="quiz-explanation" hidden></div>
+                <div class="quiz-footer">
+                    <span class="quiz-progress" id="quiz-progress"></span>
+                    <button class="btn btn-secondary-glass" id="btn-next-quiz">Next Question ➡</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phishing Analyzer (existing) -->
+        <section id="analyzer-zone" class="glass-card module-analyzer" aria-label="Phishing analyzer">
+            <header class="card-header">
+                <h2>🔬 Phishing Analyzer</h2>
+                <p>Paste a URL or email content to analyze</p>
+            </header>
+            <div class="analyzer-tabs">
+                <button class="tab-btn active" data-tab="url">🔗 URL Check</button>
+                <button class="tab-btn" data-tab="email">📧 Email Check</button>
+            </div>
+            <div id="url-panel" class="analyzer-panel active">
+                <div class="input-group">
+                    <input type="text" id="url-input" placeholder="https://suspicious-link.com/verify..." autocomplete="off">
+                </div>
+                <button id="btn-analyze-url" class="btn btn-primary analyze-btn">🔍 Analyze URL</button>
+            </div>
+            <div id="email-panel" class="analyzer-panel" style="display: none;">
+                <div class="eml-upload-zone" id="eml-upload-zone">
+                    <div class="upload-icon">📨</div>
+                    <p class="upload-title">Upload .eml file or paste raw email</p>
+                    <p class="upload-subtitle">Drag & drop .eml file here for full forensic analysis</p>
+                    <input type="file" id="eml-file-input" accept=".eml,.txt" hidden>
+                    <div class="upload-actions">
+                        <button class="btn btn-primary upload-btn" id="btn-browse-eml">📁 Browse File</button>
+                        <button class="btn btn-secondary-glass" id="btn-paste-toggle">📋 Paste Raw Email</button>
+                    </div>
+                </div>
+                <div id="email-paste-area" style="display: none;">
+                    <div class="input-group">
+                        <textarea id="email-input" rows="10" placeholder="Paste full email source including headers..." style="resize: vertical; font-family: 'Courier New', monospace; font-size: 0.82rem;"></textarea>
+                    </div>
+                    <div class="email-actions">
+                        <button id="btn-analyze-email" class="btn btn-primary analyze-btn" style="flex: 1;">🔬 Analyze Email</button>
+                        <button id="btn-back-upload" class="btn btn-secondary-glass">← Back</button>
+                    </div>
+                </div>
+                <div id="email-forensics" class="email-forensics" style="display: none;">
+                    <div class="forensics-subject-bar">
+                        <div class="subject-info">
+                            <div class="subject-breadcrumb">
+                                <span class="bc-item">Uploads</span> <span class="bc-sep">›</span>
+                                <span class="bc-item active" id="f-subject-crumb">Email Analysis</span>
+                            </div>
+                            <h3 class="forensics-subject" id="f-subject">Email Subject 📎</h3>
+                        </div>
+                        <div class="subject-actions">
+                            <!-- #22 Export PDF -->
+                            <button class="btn btn-secondary-glass" id="btn-export-report" title="Export as PDF">📥 Export</button>
+                            <button class="btn btn-resolve" id="btn-resolve-email">✅ Resolve</button>
+                        </div>
+                    </div>
+                    <div class="forensics-tabs" id="forensics-tabs">
+                        <button class="f-tab active" data-ftab="details"><span class="tab-dot dot-safe"></span> Details</button>
+                        <button class="f-tab" data-ftab="authentication"><span class="tab-dot dot-danger"></span> Authentication</button>
+                        <button class="f-tab" data-ftab="urls"><span class="tab-dot dot-danger"></span> URLs</button>
+                        <button class="f-tab" data-ftab="attachments"><span class="tab-dot dot-warn"></span> Attachments</button>
+                        <button class="f-tab" data-ftab="transmission"><span class="tab-dot"></span> Transmission</button>
+                        <button class="f-tab" data-ftab="xheaders"><span class="tab-dot"></span> X-headers</button>
+                    </div>
+                    <div class="forensics-split">
+                        <div class="forensics-left">
+                            <div class="ftab-panel active" data-fp="details" id="fp-details"></div>
+                            <div class="ftab-panel" data-fp="authentication" id="fp-auth"></div>
+                            <div class="ftab-panel" data-fp="urls" id="fp-urls"></div>
+                            <div class="ftab-panel" data-fp="attachments" id="fp-attachments"></div>
+                            <div class="ftab-panel" data-fp="transmission" id="fp-transmission"></div>
+                            <div class="ftab-panel" data-fp="xheaders" id="fp-xheaders"></div>
+                        </div>
+                        <div class="forensics-right">
+                            <div class="body-tabs">
+                                <button class="body-tab active" data-btab="rendered">Rendered</button>
+                                <button class="body-tab" data-btab="html">HTML</button>
+                                <button class="body-tab" data-btab="plaintext">Plaintext</button>
+                                <button class="body-tab" data-btab="source">Source</button>
+                            </div>
+                            <div class="body-content">
+                                <div class="btab-panel active" data-bp="rendered" id="bp-rendered"></div>
+                                <div class="btab-panel" data-bp="html" id="bp-html"></div>
+                                <div class="btab-panel" data-bp="plaintext" id="bp-plaintext"></div>
+                                <div class="btab-panel" data-bp="source" id="bp-source"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="forensics-summary" id="forensics-summary"></div>
+                    <button class="btn btn-secondary-glass" id="btn-new-analysis" style="margin-top: 15px; width: 100%;">🔄 New Analysis</button>
+                </div>
+            </div>
+            <div id="analysis-results" class="results-container" hidden>
+                <div class="risk-score-display">
+                    <div class="score-circle" id="score-circle"><span id="risk-score">0</span></div>
+                    <span id="risk-label" class="risk-label">Enter data to analyze</span>
+                </div>
+                <div id="findings-list" class="findings-list"></div>
+            </div>
+        </section>
+
+        <!-- #8 Security Dashboard -->
+        <section id="dashboard-zone" class="glass-card module-dashboard" aria-label="Security analytics dashboard">
+            <header class="card-header">
+                <h2>📊 Security Dashboard</h2>
+                <p>Your activity analytics</p>
+            </header>
+            <div class="dashboard-charts">
+                <div class="chart-card">
+                    <h3>📈 Detection Rate</h3>
+                    <canvas id="chart-detection" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🍩 Threat Categories</h3>
+                    <canvas id="chart-categories" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- #10 Browser Extension Checker -->
+        <section id="extensions-zone" class="glass-card" aria-label="Recommended browser extensions">
+            <header class="card-header">
+                <h2>🧩 Security Extensions</h2>
+                <p>Recommended browser add-ons</p>
+            </header>
+            <div class="ext-grid">
+                <div class="ext-card">
+                    <h4>🔑 Bitwarden</h4>
+                    <p>Free, open-source password manager with zero-knowledge encryption.</p>
+                    <a href="https://bitwarden.com" target="_blank" rel="noopener noreferrer">Install →</a>
+                </div>
+                <div class="ext-card">
+                    <h4>🛡️ uBlock Origin</h4>
+                    <p>Efficient ad & tracker blocker. Blocks malvertising attacks.</p>
+                    <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer">Install →</a>
+                </div>
+                <div class="ext-card">
+                    <h4>🔒 HTTPS Everywhere</h4>
+                    <p>Forces encrypted HTTPS connections on all sites.</p>
+                    <a href="https://www.eff.org/https-everywhere" target="_blank" rel="noopener noreferrer">Install →</a>
+                </div>
+                <div class="ext-card">
+                    <h4>📧 SimpleLogin</h4>
+                    <p>Email alias service. Hide your real email from spam & breaches.</p>
+                    <a href="https://simplelogin.io" target="_blank" rel="noopener noreferrer">Install →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- #23 Threat Feed -->
+        <section id="threat-feed-zone" class="glass-card" aria-label="Threat intelligence feed">
+            <header class="card-header">
+                <h2>📡 Threat Intel Feed</h2>
+                <p>Latest cybersecurity alerts</p>
+            </header>
+            <div class="threat-feed-list" id="threat-feed-list"></div>
+        </section>
+
+        <!-- API Configuration -->
+        <section id="api-config-zone" class="glass-card module-api-config" aria-label="API configuration">
+            <header class="card-header">
+                <h2>⚙️ API Configuration</h2>
+                <p>Connect external threat intelligence</p>
+            </header>
+            <div class="api-config-list">
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🦠</span>
+                        <div class="api-info"><strong>VirusTotal</strong><span class="api-status" id="vt-status">Not Configured</span></div>
+                        <label class="toggle-switch"><input type="checkbox" id="vt-enabled" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="vt-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="vt">💾</button>
+                    </div>
+                    <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" class="api-link">Get Free Key →</a>
+                </div>
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🔒</span>
+                        <div class="api-info"><strong>Google Safe Browsing</strong><span class="api-status" id="gsb-status">Not Configured</span></div>
+                        <label class="toggle-switch"><input type="checkbox" id="gsb-enabled" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="gsb-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="gsb">💾</button>
+                    </div>
+                    <a href="https://console.cloud.google.com/apis/library/safebrowsing.googleapis.com" target="_blank" class="api-link">Get Key →</a>
+                </div>
+                <div class="api-item">
+                    <div class="api-header">
+                        <span class="api-icon">🎣</span>
+                        <div class="api-info"><strong>PhishTank</strong><span class="api-status" id="pt-status">Not Configured</span></div>
+                        <label class="toggle-switch"><input type="checkbox" id="pt-enabled" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="api-key-input">
+                        <input type="password" id="pt-api-key" placeholder="API Key...">
+                        <button class="btn-save-key" data-api="pt">💾</button>
+                    </div>
+                    <a href="https://phishtank.org/api_info.php" target="_blank" class="api-link">Get Free Key →</a>
+                </div>
+            </div>
+            <div class="api-note"><p>🔐 Keys encrypted & stored locally in your browser</p></div>
+        </section>
+
+        <!-- Zone: Threat Scanner -->
+        <section id="threat-scanner-zone" class="glass-card module-threat-scanner" aria-label="Advanced threat scanner">
+            <header class="card-header">
+                <h2>🔎 Advanced Threat Scanner</h2>
+                <span class="card-badge">Deep Analysis</span>
+            </header>
+
+            <!-- Bulk URL Scanner -->
+            <div class="ts-panel">
+                <h3 class="ts-panel-title">📋 Bulk URL Scanner</h3>
+                <p class="ts-panel-desc">Paste multiple URLs (one per line) to scan them all at once.</p>
+                <textarea id="bulk-url-input" class="ts-textarea" rows="5" placeholder="https://example.com&#10;https://suspicious-site.tk/login&#10;https://paypa1.com/verify"></textarea>
+                <button class="btn btn-primary" id="btn-bulk-scan">🚀 Scan All URLs</button>
+                <div id="bulk-results" style="display:none;"></div>
+            </div>
+
+            <!-- Lookalike Domain Checker -->
+            <div class="ts-panel">
+                <h3 class="ts-panel-title">🎭 Lookalike Domain Checker</h3>
+                <p class="ts-panel-desc">Check if a domain impersonates a known brand using typosquatting or homoglyphs.</p>
+                <div class="ts-input-row">
+                    <input type="text" id="domain-check-input" class="ts-input" placeholder="e.g. paypa1.com, g00gle.com, amaz0n-login.net">
+                    <button class="btn btn-primary" id="btn-domain-check">Check Domain</button>
+                </div>
+                <div id="domain-results" style="display:none;"></div>
+            </div>
+
+            <!-- Language Risk Analyzer -->
+            <div class="ts-panel">
+                <h3 class="ts-panel-title">📝 Language Risk Analyzer</h3>
+                <p class="ts-panel-desc">Paste email or message text to detect manipulation tactics.</p>
+                <textarea id="language-input" class="ts-textarea" rows="6" placeholder="Paste suspicious email content here..."></textarea>
+                <button class="btn btn-primary" id="btn-language-scan">🔍 Analyze Language</button>
+                <div id="language-results" style="display:none;"></div>
+            </div>
+        </section>
+
+        <!-- Zone: Training Modules -->
+        <section id="training-module-zone" class="glass-card module-training-full" aria-label="Cyber safety training">
+            <header class="card-header">
+                <h2>📚 Cyber Safety Training</h2>
+                <span class="card-badge">5 Modules</span>
+            </header>
+
+            <div id="training-grid-view">
+                <p class="tm-intro">Complete all five modules to earn your Cyber Safety Certificate. Each module includes lessons and a quiz (80% to pass).</p>
+                <div id="training-modules-grid" class="tm-grid"></div>
+            </div>
+
+            <div id="training-active-view" style="display:none;">
+                <div class="tm-active-header">
+                    <button class="btn btn-secondary-glass" id="btn-back-to-modules">← Back</button>
+                    <h3 id="tm-active-title"></h3>
+                </div>
+                <div id="tm-lessons-section">
+                    <div id="tm-lessons-content"></div>
+                    <button class="btn btn-primary" id="btn-start-module-quiz" style="margin-top:16px;">📝 Take the Quiz</button>
+                </div>
+                <div id="tm-quiz-section" style="display:none;">
+                    <div id="tm-quiz-progress" class="quiz-progress"></div>
+                    <div id="tm-quiz-question" class="quiz-question"></div>
+                    <div id="tm-quiz-options" class="quiz-options"></div>
+                    <div id="tm-quiz-explain" class="quiz-explanation" hidden></div>
+                    <button class="btn btn-primary" id="btn-next-module-quiz" style="margin-top:12px;">Next →</button>
+                </div>
+                <div id="tm-quiz-results" style="display:none;"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- #13 Keyboard Shortcut Help -->
+    <button class="kbd-help-btn" id="kbd-help-btn" title="Keyboard shortcuts" aria-label="Show keyboard shortcuts">⌨</button>
+    <div class="kbd-overlay" id="kbd-overlay" hidden>
+        <div class="kbd-modal">
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <div class="kbd-row"><span>Report phishing</span><span class="kbd-key">R</span></div>
+            <div class="kbd-row"><span>Next scenario</span><span class="kbd-key">N</span></div>
+            <div class="kbd-row"><span>Close feedback</span><span class="kbd-key">Esc</span></div>
+            <div class="kbd-row"><span>Jump to scenario 1-5</span><span class="kbd-key">1-5</span></div>
+            <div class="kbd-row"><span>Toggle theme</span><span class="kbd-key">T</span></div>
+            <div class="kbd-row"><span>Show shortcuts</span><span class="kbd-key">?</span></div>
+            <button class="btn btn-secondary-glass" style="margin-top: 16px; width: 100;" id="kbd-close">Close</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 CyberGuard Architect. Educational Purpose Only.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="enhancements.js"></script>
+</body>
+
+</html>
